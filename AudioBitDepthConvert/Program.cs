@@ -25,9 +25,9 @@ internal class Program
     {
         var audioFiles = Directory.GetFiles(directoryPath, "*.wav", SearchOption.AllDirectories);
 
-        foreach (var file in audioFiles)
+        foreach (var filePath in audioFiles)
         {
-            ConvertBitDepth(file);
+            ConvertBitDepth(filePath);
         }
     }
 

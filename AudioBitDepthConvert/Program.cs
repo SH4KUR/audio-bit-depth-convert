@@ -1,4 +1,6 @@
-﻿namespace AudioBitDepthConvert;
+﻿using NAudio.Wave;
+
+namespace AudioBitDepthConvert;
 
 internal class Program
 {
@@ -31,8 +33,30 @@ internal class Program
 
     private static void ConvertBitDepth(string filePath)
     {
-        Console.WriteLine(filePath);
+        using (var reader = new WaveFileReader(filePath))
+        {
+            if (reader.WaveFormat.BitsPerSample != 32)
+            {
+                return;
+            }
 
-        // code
+            Console.WriteLine($"> {filePath}");
+            
+            var targetWaveFormat = new WaveFormat(reader.WaveFormat.SampleRate, 24, reader.WaveFormat.Channels);
+
+            using (var conversionStream = new WaveFormatConversionStream(targetWaveFormat, reader))
+            {
+                using (var writer = new WaveFileWriter("24_" + filePath, conversionStream.WaveFormat))
+                {
+                    var buffer = new byte[8192];
+                    int bytesRead;
+
+                    while ((bytesRead = conversionStream.Read(buffer, 0, buffer.Length)) > 0)
+                    {
+                        writer.Write(buffer, 0, bytesRead);
+                    }
+                }
+            }
+        }
     }
 }

@@ -1,4 +1,5 @@
-﻿using NAudio.Wave;
+﻿using System.Diagnostics;
+using NAudio.Wave;
 
 namespace AudioBitDepthConvert;
 
@@ -13,7 +14,7 @@ internal class Program
         {
             ConvertFiles(directoryPath);
 
-            Console.WriteLine("Converting completed successfully.");
+            Console.WriteLine("Converting completed.");
         }
         else
         {
@@ -40,23 +41,50 @@ internal class Program
                 return;
             }
 
-            Console.WriteLine($"> {filePath}");
-            
-            var targetWaveFormat = new WaveFormat(reader.WaveFormat.SampleRate, 24, reader.WaveFormat.Channels);
+            Console.WriteLine(filePath);
 
-            using (var conversionStream = new WaveFormatConversionStream(targetWaveFormat, reader))
+            try
             {
-                using (var writer = new WaveFileWriter("24_" + filePath, conversionStream.WaveFormat))
-                {
-                    var buffer = new byte[8192];
-                    int bytesRead;
-
-                    while ((bytesRead = conversionStream.Read(buffer, 0, buffer.Length)) > 0)
-                    {
-                        writer.Write(buffer, 0, bytesRead);
-                    }
-                }
+                ExecuteSoxUtility(filePath);
             }
+            catch (Exception e)
+            {
+                Console.WriteLine($"ERROR: {e.Message}");
+            }   
         }
+    }
+
+    private static void ExecuteSoxUtility(string filePath) 
+    {
+        var convertedFilePath = CreateConvertedFilePath(filePath);
+
+        var startInfo = new ProcessStartInfo() 
+        {
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+
+            FileName = "sox",
+            Arguments = $"\"{filePath}\" -b 24 \"{convertedFilePath}\""
+        };
+
+        var process = Process.Start(startInfo) ?? throw new NullReferenceException("Process is null");
+        process.WaitForExit();
+
+        Console.WriteLine($">>> {convertedFilePath}");
+    }
+
+    private static string CreateConvertedFilePath(string filePath) 
+    {
+        var directoryPath = Path.GetDirectoryName(filePath);
+        var fileName = Path.GetFileName(filePath);
+        var outputDirectoryPath = directoryPath + "\\converted";
+
+        if (!Directory.Exists(outputDirectoryPath))
+        {
+            Directory.CreateDirectory(outputDirectoryPath);
+        }
+
+        return $"{outputDirectoryPath}\\{fileName}";
     }
 }

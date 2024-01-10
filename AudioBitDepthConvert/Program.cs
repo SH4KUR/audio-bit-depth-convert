@@ -10,15 +10,15 @@ internal class Program
         Console.Write("Enter the path of the directory: ");
         var directoryPath = Console.ReadLine();
 
-        if (Directory.Exists(directoryPath))
+        if (!string.IsNullOrEmpty(directoryPath) && Directory.Exists(directoryPath))
         {
-            ConvertFiles(directoryPath);
+            ConvertFiles(RemoveDashesFromEndPath(directoryPath));
 
             Console.WriteLine("Converting completed.");
         }
         else
         {
-            Console.WriteLine("Directory not found.");
+            Console.WriteLine($"Directory '{directoryPath}' not found.");
         }
     }
     
@@ -28,11 +28,11 @@ internal class Program
 
         foreach (var filePath in audioFiles)
         {
-            ConvertBitDepth(filePath);
+            ConvertBitDepth(filePath, directoryPath);
         }
     }
 
-    private static void ConvertBitDepth(string filePath)
+    private static void ConvertBitDepth(string filePath, string parentDirectoryPath)
     {
         using (var reader = new WaveFileReader(filePath))
         {
@@ -45,7 +45,7 @@ internal class Program
 
             try
             {
-                ExecuteSoxUtility(filePath);
+                ExecuteSoxUtility(filePath, CreateConvertedFilePath(filePath, parentDirectoryPath));
             }
             catch (Exception e)
             {
@@ -54,10 +54,8 @@ internal class Program
         }
     }
 
-    private static void ExecuteSoxUtility(string filePath) 
+    private static void ExecuteSoxUtility(string filePath, string convertedFilePath) 
     {
-        var convertedFilePath = CreateConvertedFilePath(filePath);
-
         var startInfo = new ProcessStartInfo() 
         {
             RedirectStandardOutput = true,
@@ -71,20 +69,27 @@ internal class Program
         var process = Process.Start(startInfo) ?? throw new NullReferenceException("Process is null");
         process.WaitForExit();
 
-        Console.WriteLine($">>> {convertedFilePath}");
+        Console.WriteLine($"> {convertedFilePath}");
     }
 
-    private static string CreateConvertedFilePath(string filePath) 
+    private static string CreateConvertedFilePath(string filePath, string parentDirectoryPath) 
     {
-        var directoryPath = Path.GetDirectoryName(filePath);
-        var fileName = Path.GetFileName(filePath);
-        var outputDirectoryPath = directoryPath + "\\converted";
+        var fileDirectoryPath = Path.GetDirectoryName(filePath) ?? throw new NullReferenceException($"Directory path for '{filePath}' is null");
+        var outputDirectoryPath = fileDirectoryPath.Replace(parentDirectoryPath, $"{parentDirectoryPath}\\converted");
 
         if (!Directory.Exists(outputDirectoryPath))
         {
             Directory.CreateDirectory(outputDirectoryPath);
         }
 
+        var fileName = Path.GetFileName(filePath);
         return $"{outputDirectoryPath}\\{fileName}";
+    }
+
+    private static string RemoveDashesFromEndPath(string directoryPath) 
+    {
+        return directoryPath.EndsWith("\\") 
+            ? directoryPath.Remove(directoryPath.Length - 1)
+            : directoryPath;
     }
 }

@@ -8,31 +8,31 @@ internal class Program
     private static void Main(string[] args)
     {
         Console.Write("Enter the path of the directory: ");
-        var directoryPath = Console.ReadLine();
+        var targetDirectoryPath = Console.ReadLine();
 
-        if (!string.IsNullOrEmpty(directoryPath) && Directory.Exists(directoryPath))
+        if (!string.IsNullOrEmpty(targetDirectoryPath) && Directory.Exists(targetDirectoryPath))
         {
-            ConvertFiles(RemoveDashesFromEndPath(directoryPath));
+            ConvertFiles(RemoveDashesFromEndPath(targetDirectoryPath));
 
             Console.WriteLine("Converting completed.");
         }
         else
         {
-            Console.WriteLine($"Directory '{directoryPath}' not found.");
+            Console.WriteLine($"Directory '{targetDirectoryPath}' not found.");
         }
     }
     
-    private static void ConvertFiles(string directoryPath) 
+    private static void ConvertFiles(string targetDirectoryPath) 
     {
-        var audioFiles = Directory.GetFiles(directoryPath, "*.wav", SearchOption.AllDirectories);
+        var audioFiles = Directory.GetFiles(targetDirectoryPath, "*.wav", SearchOption.AllDirectories);
 
         foreach (var filePath in audioFiles)
         {
-            ConvertBitDepth(filePath, directoryPath);
+            ConvertBitDepth(filePath, targetDirectoryPath);
         }
     }
 
-    private static void ConvertBitDepth(string filePath, string parentDirectoryPath)
+    private static void ConvertBitDepth(string filePath, string targetDirectoryPath)
     {
         using (var reader = new WaveFileReader(filePath))
         {
@@ -45,7 +45,7 @@ internal class Program
 
             try
             {
-                ExecuteSoxUtility(filePath, CreateConvertedFilePath(filePath, parentDirectoryPath));
+                ExecuteSoxUtility(filePath, CreateConvertedFilePath(filePath, targetDirectoryPath));
             }
             catch (Exception e)
             {
@@ -72,18 +72,17 @@ internal class Program
         Console.WriteLine($"> {convertedFilePath}");
     }
 
-    private static string CreateConvertedFilePath(string filePath, string parentDirectoryPath) 
+    private static string CreateConvertedFilePath(string filePath, string targetDirectoryPath) 
     {
         var fileDirectoryPath = Path.GetDirectoryName(filePath) ?? throw new NullReferenceException($"Directory path for '{filePath}' is null");
-        var outputDirectoryPath = fileDirectoryPath.Replace(parentDirectoryPath, $"{parentDirectoryPath}\\converted");
+        var convertedFileDirectoryPath = fileDirectoryPath.Replace(targetDirectoryPath, $"{targetDirectoryPath}\\converted");
 
-        if (!Directory.Exists(outputDirectoryPath))
+        if (!Directory.Exists(convertedFileDirectoryPath))
         {
-            Directory.CreateDirectory(outputDirectoryPath);
+            Directory.CreateDirectory(convertedFileDirectoryPath);
         }
 
-        var fileName = Path.GetFileName(filePath);
-        return $"{outputDirectoryPath}\\{fileName}";
+        return $"{convertedFileDirectoryPath}\\{Path.GetFileName(filePath)}";
     }
 
     private static string RemoveDashesFromEndPath(string directoryPath) 

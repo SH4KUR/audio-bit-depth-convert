@@ -12,7 +12,7 @@ internal class Program
 
         if (!string.IsNullOrEmpty(targetDirectoryPath) && Directory.Exists(targetDirectoryPath))
         {
-            ConvertFiles(RemoveDashesFromEndPath(targetDirectoryPath));
+            ConvertFiles(targetDirectoryPath);
 
             Console.WriteLine("Converting completed.");
         }
@@ -75,20 +75,14 @@ internal class Program
     private static string CreateConvertedFilePath(string filePath, string targetDirectoryPath) 
     {
         var fileDirectoryPath = Path.GetDirectoryName(filePath) ?? throw new NullReferenceException($"Directory path for '{filePath}' is null");
-        var convertedFileDirectoryPath = fileDirectoryPath.Replace(targetDirectoryPath, $"{targetDirectoryPath}\\converted");
+        var folderWithConvertedFiles = Path.Combine(targetDirectoryPath, "converted");
+        var convertedFileDirectoryPath = fileDirectoryPath.Replace(targetDirectoryPath, folderWithConvertedFiles);
 
         if (!Directory.Exists(convertedFileDirectoryPath))
         {
             Directory.CreateDirectory(convertedFileDirectoryPath);
         }
 
-        return $"{convertedFileDirectoryPath}\\{Path.GetFileName(filePath)}";
-    }
-
-    private static string RemoveDashesFromEndPath(string directoryPath) 
-    {
-        return directoryPath.EndsWith("\\") 
-            ? directoryPath.Remove(directoryPath.Length - 1)
-            : directoryPath;
+        return Path.Combine(convertedFileDirectoryPath, Path.GetFileName(filePath));
     }
 }

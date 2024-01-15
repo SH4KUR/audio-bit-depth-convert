@@ -65,7 +65,7 @@ internal class Program
             UseShellExecute = false,
 
             FileName = "sox",
-            Arguments = $"\"{filePath}\" -b 24 \"{convertedFilePath}\""
+            Arguments = $"\"{filePath}\" -b 16 \"{convertedFilePath}\""
         };
 
         var process = Process.Start(startInfo) ?? throw new NullReferenceException("Process is null");

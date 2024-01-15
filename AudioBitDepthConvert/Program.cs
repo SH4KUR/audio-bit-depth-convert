@@ -8,17 +8,19 @@ internal class Program
     private static void Main(string[] args)
     {
         Console.Write("Enter the path of the directory: ");
-        var targetDirectoryPath = Console.ReadLine();
+        var inputPath = Console.ReadLine();
 
-        if (!string.IsNullOrEmpty(targetDirectoryPath) && Directory.Exists(targetDirectoryPath))
+        if (!string.IsNullOrEmpty(inputPath) && Path.Exists(inputPath))
         {
+            var targetDirectoryPath = Path.GetDirectoryName(inputPath) ?? throw new NullReferenceException("targetDirectoryPath is null");
+            
             ConvertFiles(targetDirectoryPath);
 
-            Console.WriteLine("Converting completed.");
+            Console.WriteLine($"Converting in '{targetDirectoryPath}' completed.");
         }
         else
         {
-            Console.WriteLine($"Directory '{targetDirectoryPath}' not found.");
+            Console.WriteLine($"Directory '{inputPath}' not found.");
         }
     }
     
